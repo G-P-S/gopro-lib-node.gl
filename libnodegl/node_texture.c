@@ -436,7 +436,7 @@ static int texture_prefetch(struct ngl_node *node, GLenum local_target)
     struct glcontext *glcontext = ctx->glcontext;
     struct texture *s = node->priv_data;
 
-    if (!glcontext->has_texture_storage_compatibility && s->immutable) {
+    if (!(glcontext->features & NGLI_FEATURE_TEXTURE_STORAGE) && s->immutable) {
         LOG(ERROR, "context does not support texture storage");
         return -1;
     }
@@ -636,7 +636,7 @@ static int texture3d_init(struct ngl_node *node)
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *glcontext = ctx->glcontext;
 
-    if (!glcontext->has_texture3d_compatibility) {
+    if (!(glcontext->features & NGLI_FEATURE_TEXTURE_3D)) {
         LOG(ERROR, "context does not support 3D textures");
         return -1;
     }
