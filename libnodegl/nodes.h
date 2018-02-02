@@ -327,6 +327,10 @@ struct media {
     int max_nb_frames;
     int max_nb_sink;
     int max_pixels;
+    int64_t *pts_buffer;
+    int pts_buffer_count;
+    double duration; // only set in case of pts buffer usage
+    int st_timebase[2];
 
     int sxplayer_min_level;
 

@@ -52,6 +52,8 @@ static const struct node_param media_params[] = {
                        .desc=NGLI_DOCSTRING("maximum number of frames in sxplayer filtering queue")},
     {"max_pixels",     PARAM_TYPE_INT, OFFSET(max_pixels),     {.i64=0},
                        .desc=NGLI_DOCSTRING("maximum number of pixels per frame")},
+    {"pts_buffer",     PARAM_TYPE_DATA, OFFSET(pts_buffer),
+                       .desc=NGLI_DOCSTRING("buffer of allowed 64-bit presentation timestamps of the media (in stream time base units)")},
     {NULL}
 };
 
@@ -108,6 +110,16 @@ static int media_init(struct ngl_node *node)
     struct ngl_node *anim_node = s->anim;
     if (anim_node) {
         struct animation *anim = anim_node->priv_data;
+
+        if (s->pts_buffer) {
+            if (anim->nb_animkf != 2) {
+                LOG(ERROR, "A 2 linear key-frame time animation is required when using a PTS buffer");
+                return -1;
+            }
+            const struct animkeyframe *kfa = anim->animkf[0]->priv_data;
+            const struct animkeyframe *kfb = anim->animkf[1]->priv_data;
+            s->duration = kfb->time - kfa->time;
+        }
 
         // Sanity checks for time animation keyframe
         double prev_media_time = 0;
@@ -238,6 +250,17 @@ static int media_update(struct ngl_node *node, double t)
     LOG(VERBOSE, "get frame from %s at t=%g", node->name, media_time);
     struct sxplayer_frame *frame = sxplayer_get_frame(s->player, media_time);
     if (frame) {
+
+        if (s->pts_buffer_count) {
+#if 0
+            if (!s->st_timebase[1]) {
+                struct sxplayer_info info;
+                sxplayer_get_info(s->player, &info);
+                memcpy(s->st_timebase, info->timebase, sizeof(s->st_timebase));
+            }
+#endif
+        }
+
         const char *pix_fmt_str = frame->pix_fmt >= 0 &&
                                   frame->pix_fmt < NGLI_ARRAY_NB(pix_fmt_names) ? pix_fmt_names[frame->pix_fmt]
                                                                                 : NULL;
