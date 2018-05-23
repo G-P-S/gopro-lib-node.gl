@@ -25,12 +25,12 @@
 #include "nodegl.h"
 #include "nodes.h"
 
-struct group {
+struct node_group {
     struct ngl_node **children;
     int nb_children;
 };
 
-#define OFFSET(x) offsetof(struct group, x)
+#define OFFSET(x) offsetof(struct node_group, x)
 static const struct node_param group_params[] = {
     {"children", PARAM_TYPE_NODELIST, OFFSET(children),
                  .desc=NGLI_DOCSTRING("a set of scenes")},
@@ -39,7 +39,7 @@ static const struct node_param group_params[] = {
 
 static int group_update(struct ngl_node *node, double t)
 {
-    struct group *s = node->priv_data;
+    struct node_group *s = node->priv_data;
 
     for (int i = 0; i < s->nb_children; i++) {
         struct ngl_node *child = s->children[i];
@@ -55,7 +55,7 @@ static int group_update(struct ngl_node *node, double t)
 
 static void group_draw(struct ngl_node *node)
 {
-    struct group *s = node->priv_data;
+    struct node_group *s = node->priv_data;
     for (int i = 0; i < s->nb_children; i++)
         ngli_node_draw(s->children[i]);
 }
@@ -65,7 +65,7 @@ const struct node_class ngli_group_class = {
     .name      = "Group",
     .update    = group_update,
     .draw      = group_draw,
-    .priv_size = sizeof(struct group),
+    .priv_size = sizeof(struct node_group),
     .params    = group_params,
     .file      = __FILE__,
 };
